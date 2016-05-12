@@ -151,9 +151,9 @@ class Genesis_G2W {
 		$user = wp_get_current_user();
 
 		if ( $this->debug ) {
-			echo "First Name: " . $user->first_name . "<br />\n";
+			echo "<p>First Name: " . $user->first_name . "<br />\n";
 			echo "Last Name: " . $user->last_name . "<br />\n";
-			echo "Email: " . $user->user_email . "<br />\n";
+			echo "Email: " . $user->user_email . "</p>\n";
 		}
 
 		if ( isset( $_POST['submit'] ) ) {
@@ -197,25 +197,30 @@ class Genesis_G2W {
 		if ( ! $user->first_name || ! $user->last_name || ! $user->user_email ) {
 
 			if ( $this->debug ) {
-				echo '<pre>';
+				echo '<p><pre>';
 				var_dump( $user );
-				echo '</pre>';
-				return true;
+				echo '</pre></p>';
 			}
 
 			return false;
 
 		}
 
+		$data = array(
+			'firstName' => $user->first_name,
+			'lastName'  => $user->last_name,
+			'email'     => $user->user_email,
+		);
+
 		$request = $this->g2w_api_request( array(
 			'endpoint' => sprintf( '/webinars/%s/registrants', $webinar_key ),
-			'data'     => $user,
+			'data'     => $data,
 		) );
 
 		if ( $this->debug ) {
-			echo '<pre>';
+			echo '<p><pre>';
 			var_dump( $request );
-			echo '</pre>';
+			echo '</pre></p>';
 		}
 
 		return $request;
@@ -265,7 +270,7 @@ class Genesis_G2W {
 			'data'        => array(),
 		) );
 
-		$rest_url = sprintf( 'https://api.citrixonline.com/G2W/rest/organizers/%s', genesis_get_option( 'organizer_key' ) );
+		$rest_url = sprintf( 'https://api.citrixonline.com/G2W/rest/organizers/%s', genesis_get_option( 'organizer_key', 'genesis-g2w' ) );
 
 		$url = $rest_url . $args['endpoint'];
 
@@ -279,10 +284,10 @@ class Genesis_G2W {
 		);
 
 		if ( $this->debug ) {
-			echo "REST URL: {$url} <br />\n";
-			echo 'Request Args:<br /><pre>';
+			echo "<p>REST URL: {$url}</p>\n";
+			echo '<p>Request Args:<br /><pre>';
 			var_dump( $request_args );
-			echo '</pre>';
+			echo '</pre></p>';
 		}
 
 		//* Execute the POST/GET
