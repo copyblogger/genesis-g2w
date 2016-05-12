@@ -17,7 +17,7 @@ class Genesis_G2W_Admin extends Genesis_Admin_Form {
 
 		$menu_ops = array(
 			'submenu' => array(
-				'parent_slug' => 'genesis-g2w',
+				'parent_slug' => 'genesis',
 				'page_title'  => __( 'Genesis GoToWebinar Settings', 'genesis-g2w' ),
 				'menu_title'  => __( 'GoToWebinar', 'genesis-g2w' )
 			)

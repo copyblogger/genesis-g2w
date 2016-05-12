@@ -278,6 +278,13 @@ class Genesis_G2W {
 			),
 		);
 
+		if ( $this->debug ) {
+			echo "REST URL: {$url} <br />\n";
+			echo 'Request Args:<br /><pre>';
+			var_dump( $request_args );
+			echo '</pre>';
+		}
+
 		//* Execute the POST/GET
 		$response = 'get' == $args['method'] ? wp_remote_get( $url, $request_args ) : wp_remote_post( $url, $request_args );
 
