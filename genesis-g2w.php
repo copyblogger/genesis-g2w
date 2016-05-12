@@ -1,6 +1,18 @@
 <?php
 /*
-Plugin Name: Go2Webinar for Genesis
+Plugin Name: GoToWebinar for Genesis
+Plugin URI: https://github.com/copyblogger/genesis-g2w
+Description: This plugin creates a shortcode you can insert into a post or page that will allow users to register for a webinar.
+Author: Rainmaker Digital
+Author URI: http://rainmakerdigital.com/
+
+Version: 0.9.0
+
+Text Domain: genesis-g2w
+Domain Path: /languages
+
+License: GPL-2.0+
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 */
 
 
@@ -24,25 +36,11 @@ class Genesis_G2W {
 	public $admin;
 
 	/**
-	 * The GoToWebinar API key.
+	 * Debugging flag
 	 *
-	 * @since 0.9.9
+	 * @since 0.9.0
 	 */
-	public $api_key;
-
-	/**
-	 * The GoToWebinar access token.
-	 *
-	 * @since 0.9.9
-	 */
-	public $access_token;
-
-	/**
-	 * The GoToWebinar organizer key.
-	 *
-	 * @since 0.9.9
-	 */
-	public $organizer_key;
+	public $debug = false;
 
 	/**
 	 * Constructor. Runs when object is instantiated.
@@ -52,6 +50,10 @@ class Genesis_G2W {
 	public function __construct() {
 
 		$this->plugin_dir = plugin_dir_path( __FILE__ );
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			$this->debug = true;
+		}
 
 		//register_activation_hook( __FILE__, array( $this, 'activation' ) );
 		add_action( 'admin_init', array( $this, 'dependency_check' ) );
@@ -148,7 +150,17 @@ class Genesis_G2W {
 
 		$user = wp_get_current_user();
 
+		if ( $this->debug ) {
+			echo "First Name: " . $user->first_name . "<br />\n";
+			echo "Last Name: " . $user->last_name . "<br />\n";
+			echo "Email: " . $user->user_email . "<br />\n";
+		}
+
 		if ( isset( $_POST['submit'] ) ) {
+
+			if ( $this->debug ) {
+				echo "<p>Form submitted ...</p>\n";
+			}
 
 			if ( $this->process_form( $atts['key'], $user ) ) {
 				return __( 'You have successfully registered for this webinar.', 'genesis-g2w' );
@@ -182,14 +194,31 @@ class Genesis_G2W {
 	 */
 	public function process_form( $webinar_key, $user ) {
 
-		if ( ! $user['first_name'] || ! $user['last_name'] || ! $user['email'] ) {
+		if ( ! $user->first_name || ! $user->last_name || ! $user->user_email ) {
+
+			if ( $this->debug ) {
+				echo '<pre>';
+				var_dump( $user );
+				echo '</pre>';
+				return true;
+			}
+
 			return false;
+
 		}
 
-		return $this->g2w_api_request( array(
+		$request = $this->g2w_api_request( array(
 			'endpoint' => sprintf( '/webinars/%s/registrants', $webinar_key ),
 			'data'     => $user,
 		) );
+
+		if ( $this->debug ) {
+			echo '<pre>';
+			var_dump( $request );
+			echo '</pre>';
+		}
+
+		return $request;
 
 	}
 
