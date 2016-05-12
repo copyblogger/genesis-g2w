@@ -279,7 +279,7 @@ class Genesis_G2W {
 			'headers' => array(
 				'Accept'        => 'application/json',
 				'Content-type'  => 'application/json',
-				'Authorization' => 'OAuth oauth_token: ' . esc_html( genesis_get_option( 'access_token', 'genesis-g2w' ) ),
+				'Authorization' => 'OAuth oauth_token=' . esc_html( genesis_get_option( 'access_token', 'genesis-g2w' ) ),
 			),
 		);
 
