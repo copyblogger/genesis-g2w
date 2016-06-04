@@ -28,6 +28,7 @@ class Genesis_G2W_Admin extends Genesis_Admin_Form {
 		add_action( 'admin_enqueue_scripts' , array( $this, 'admin_enqueue_scripts' ) );
 		add_action( 'media_buttons' , array( $this, 'add_my_media_button' ) );
 		add_action( 'admin_footer' , array( $this, 'footer_modal'));
+		add_action( 'wp_ajax_gtw_get_webinars'   , array( $this, 'ajax_get_webinars' ) );
 
 		$page_id = 'genesis-g2w';
 
@@ -79,16 +80,7 @@ class Genesis_G2W_Admin extends Genesis_Admin_Form {
 		  				<th>Select webinar</th>
 		  				<td>
 					  		<select id="webinar_key">
-							  	<?php
-							  		$webinars = Genesis_G2W()->get_webinars();
-							  		foreach( $webinars as $webinar ) {
-							  			echo sprintf(
-							  				'<option value="%d">%s</option>',
-							  				$webinar['key'],
-							  				$webinar['title'].' ('.$webinar['date'].')'
-							  			);
-							  		}
-							  	?>
+							  	<option>Loading webinars....</option>
 							</select>
 						</td>
 					</tr>
@@ -97,6 +89,20 @@ class Genesis_G2W_Admin extends Genesis_Admin_Form {
 			</form>
 		</div>
 	<?php }
+
+	public static function ajax_get_webinars() {
+  		$output = '';
+  		$webinars = Genesis_G2W()->get_webinars();
+  		foreach( $webinars as $webinar ) {
+  			$output .= sprintf(
+  				'<option value="%d">%s</option>',
+  				$webinar['key'],
+  				$webinar['title'].' ('.$webinar['date'].')'
+  			);
+  		}
+  		echo $output;
+  		wp_die();
+	}
 
 	public static function oauth_callack() {
 		if ( isset ( $_GET['code'] ) ) {

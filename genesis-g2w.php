@@ -184,6 +184,10 @@ class Genesis_G2W {
 
 		}
 
+		if ( $this->user_registered( $atts['key'], $user ) ) {
+			return __( 'You have already registered for this webinar', 'genesis-g2w' );
+		}
+
 		return $this->registration_form( $atts['button'], $user );
 
 	}
@@ -268,7 +272,13 @@ class Genesis_G2W {
 			'method'      => 'get',
 		) );
 
-		$registrants = json_decode( $registrants );
+		if ( $this->debug ) {
+			echo '<p><pre>';
+			var_dump( $registrants );
+			echo '</pre></p>';
+		}
+
+		$registrants = json_decode( $registrants['body'] );
 
 		if ( ! $registrants ) {
 			return false;

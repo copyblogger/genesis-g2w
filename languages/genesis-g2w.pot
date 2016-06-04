@@ -40,6 +40,10 @@ msgstr ""
 msgid "You have successfully registered for this webinar."
 msgstr ""
 
+#: genesis-g2w.php:182
+msgid "You have successfully registered for this webinar."
+msgstr ""
+
 #: includes/class-genesis-g2w-admin.php:21
 msgid "Genesis GoToWebinar Settings"
 msgstr ""
