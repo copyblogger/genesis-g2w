@@ -51,6 +51,9 @@ class Genesis_G2W {
 
 		$this->plugin_dir = plugin_dir_path( __FILE__ );
 
+		define( "GENESIS_GTW_PLUGIN_DIR", $this->plugin_dir );
+		define(	"GENESIS_GTW_PLUGIN_URL", plugins_url( '', __FILE__ ) );
+
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			$this->debug = true;
 		}
@@ -65,6 +68,8 @@ class Genesis_G2W {
 		add_action( 'genesis_init', array( $this, 'add_shortcodes' ) );
 
 	}
+
+
 
 	/**
 	 * Deactivate if Genesis child theme not detected.
@@ -145,7 +150,7 @@ class Genesis_G2W {
 
 		$atts = shortcode_atts( array(
 			'key'    => '',
-			'button' => __( 'Register now with one click', 'genesis-g2w' ),
+			'button' => __( 'Register now', 'genesis-g2w' ),
 		), $atts );
 
 		$user = wp_get_current_user();
@@ -158,6 +163,17 @@ class Genesis_G2W {
 
 		if ( isset( $_POST['submit'] ) ) {
 
+			if ( isset ( $_POST['first_name'] ) && isset ( $_POST['last_name'] ) ) {
+				wp_update_user(
+					array(
+						'ID'         => $user->ID,
+						'first_name' => $_POST['first_name'],
+						'last_name'  => $_POST['last_name']
+					)
+				);
+				$user = wp_get_current_user();
+			}
+
 			if ( $this->debug ) {
 				echo "<p>Form submitted ...</p>\n";
 			}
@@ -168,7 +184,7 @@ class Genesis_G2W {
 
 		}
 
-		return $this->registration_form( $atts['button'] );
+		return $this->registration_form( $atts['button'], $user );
 
 	}
 
@@ -177,12 +193,25 @@ class Genesis_G2W {
 	 *
 	 * @since 0.9.0
 	 */
-	public function registration_form( $button_text ) {
+	public function registration_form( $button_text, $user ) {
 
 		$form  = '<form method="post">';
+
+		if( ! $user->first_name || ! $user->first_name ) {
+			$form .= '<p>Please complete both your first name and last name in your profile before continuing.</p>';
+		}
+
+		if( empty ( $user->first_name ) ) {
+			$form .= '<input required type="text" name="first_name" placeholder="First name">';
+		}
+
+		if( empty ( $user->last_name ) ) {
+			$form .= '<input required type="text" name="last_name" placeholder="Last name">';
+		}
+
 		$form .= sprintf( '<input type="submit" name="submit" value="%s" />', esc_attr( $button_text ) );
 		$form .= '</form>';
-
+		$this->get_webinars();
 		return $form;
 
 	}
@@ -257,6 +286,41 @@ class Genesis_G2W {
 
 	}
 
+	public function get_webinars() {
+
+		$return = array();
+
+		$request = $this->g2w_api_request( array(
+			'endpoint' => '/upcomingWebinars',
+			'method'   => 'get'
+		) );
+
+		if ( $this->debug ) {
+			echo '<p><pre>';
+			var_dump( json_decode( $request['body'] ) );
+			echo '</pre></p>';
+		}
+
+		$webinars = json_decode( $request['body'] );
+
+		foreach ( $webinars as $webinar ) {
+			$return[] = array(
+				'key'   => $webinar->webinarKey,
+				'title' => $webinar->subject,
+				'date'  => date_i18n( get_option( 'date_format' ), strtotime( $webinar->times[0]->startTime ) )
+			);
+		}
+
+		if ( $this->debug ) {
+			echo '<p><pre>';
+			var_dump( $return );
+			echo '</pre></p>';
+		}
+
+		return $return;
+
+	}
+
 	/**
 	 * Request to GoToWebinar API.
 	 *
@@ -270,7 +334,9 @@ class Genesis_G2W {
 			'data'        => array(),
 		) );
 
-		$rest_url = sprintf( 'https://api.citrixonline.com/G2W/rest/organizers/%s', genesis_get_option( 'organizer_key', 'genesis-g2w' ) );
+		$credentials = get_option( 'genesis_gtw_credentials' );
+
+		$rest_url = sprintf( 'https://api.citrixonline.com/G2W/rest/organizers/%s', $credentials['organiser_key'] );
 
 		$url = $rest_url . $args['endpoint'];
 
@@ -279,7 +345,7 @@ class Genesis_G2W {
 			'headers' => array(
 				'Accept'        => 'application/json',
 				'Content-type'  => 'application/json',
-				'Authorization' => 'OAuth oauth_token=' . esc_html( genesis_get_option( 'access_token', 'genesis-g2w' ) ),
+				'Authorization' => 'OAuth oauth_token=' . $credentials['token'],
 			),
 		);
 

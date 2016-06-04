@@ -1,4 +1,4 @@
-# Copyright (C) 2016 
+# Copyright (C) 2016
 # This file is distributed under the same license as the Go2Webinar for Genesis package.
 msgid ""
 msgstr ""
@@ -33,7 +33,7 @@ msgid "You must be logged in to register for the webinar."
 msgstr ""
 
 #: genesis-g2w.php:146
-msgid "Register now with one click"
+msgid "Register now"
 msgstr ""
 
 #: genesis-g2w.php:154
