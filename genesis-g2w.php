@@ -61,6 +61,8 @@ class Genesis_G2W {
 		//register_activation_hook( __FILE__, array( $this, 'activation' ) );
 		add_action( 'admin_init', array( $this, 'dependency_check' ) );
 
+		add_action( 'admin_post_gtw_sc_register', array( $this, 'register_for_webinar' ) );
+
 		add_action( 'plugins_loaded', array( $this, 'load_plugin_textdomain' ) );
 
 		add_action( 'genesis_init', array( $this, 'includes' ) );
@@ -150,6 +152,7 @@ class Genesis_G2W {
 
 		$atts = shortcode_atts( array(
 			'key'    => '',
+			'page'   => '',
 			'button' => __( 'Register now', 'genesis-g2w' ),
 		), $atts );
 
@@ -161,8 +164,25 @@ class Genesis_G2W {
 			echo "Email: " . $user->user_email . "</p>\n";
 		}
 
-		if ( isset( $_POST['submit'] ) ) {
 
+
+		if ( empty ( $_GET['status'] ) && $this->user_registered( $atts['key'], $user ) ) {
+			return __( 'You have already registered for this webinar', 'genesis-g2w' );
+		} elseif ( ! empty ( $_GET['status'] ) && $_GET['status'] == 'success' ) {
+			return __( 'You have successfully registered for this webinar.', 'genesis-g2w' );
+		} elseif ( ! empty ( $_GET['status'] ) && $_GET['status'] == 'error' ) {
+			return __( 'There was an error registering for this webinar.', 'genesis-g2w' );
+		}
+
+		return $this->registration_form( $atts['button'], $user, $atts['key'], $atts['page'] );
+
+	}
+
+	public function register_for_webinar() {
+		if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'gtw_sc_register' ) ) {
+			wp_die('Sorry an error occurred, please go back and try again.');
+			exit;
+		} else {
 			if ( isset ( $_POST['first_name'] ) && isset ( $_POST['last_name'] ) ) {
 				wp_update_user(
 					array(
@@ -171,25 +191,21 @@ class Genesis_G2W {
 						'last_name'  => $_POST['last_name']
 					)
 				);
-				$user = wp_get_current_user();
-			}
 
-			if ( $this->debug ) {
-				echo "<p>Form submitted ...</p>\n";
 			}
+			$user = wp_get_current_user();
+			if ( $this->process_form( $_POST['key'], $user ) ) {
+				if ( empty ( $_POST['page'] ) ) {
+					$url = add_query_arg( 'status', 'success', $_POST['_wp_http_referer'] );
+				} else {
+					$url = add_query_arg( 'status', 'success', get_the_permalink( $_POST['page'] ) );
+				}
 
-			if ( $this->process_form( $atts['key'], $user ) ) {
-				return __( 'You have successfully registered for this webinar.', 'genesis-g2w' );
+			} else {
+				$url = add_query_arg( 'status', 'error', $_POST['_wp_http_referer'] );
 			}
-
+			wp_safe_redirect( $url );
 		}
-
-		if ( $this->user_registered( $atts['key'], $user ) ) {
-			return __( 'You have already registered for this webinar', 'genesis-g2w' );
-		}
-
-		return $this->registration_form( $atts['button'], $user );
-
 	}
 
 	/**
@@ -197,10 +213,13 @@ class Genesis_G2W {
 	 *
 	 * @since 0.9.0
 	 */
-	public function registration_form( $button_text, $user ) {
+	public function registration_form( $button_text, $user, $key, $page ) {
 
-		$form  = '<form method="post">';
-
+		$form  = '<form method="post" action="'.admin_url( 'admin-post.php' ).'">';
+		$form .= '<input type="hidden" name="action" value="gtw_sc_register">';
+		$form .= '<input type="hidden" name="key" value="'.$key.'">';
+		$form .= '<input type="hidden" name="page" value="'.$page.'">';
+		$form .= wp_nonce_field( 'gtw_sc_register', '_wpnonce', true, false );
 		if( ! $user->first_name || ! $user->first_name ) {
 			$form .= '<p>Please complete both your first name and last name in your profile before continuing.</p>';
 		}
@@ -215,7 +234,7 @@ class Genesis_G2W {
 
 		$form .= sprintf( '<input type="submit" name="submit" value="%s" />', esc_attr( $button_text ) );
 		$form .= '</form>';
-		$this->get_webinars();
+		//$this->get_webinars();
 		return $form;
 
 	}

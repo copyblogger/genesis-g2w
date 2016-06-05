@@ -13,3 +13,6 @@
 	min-height: 500px;
 	margin: 50px auto;
 }
+#gtw_redirect_row {
+	visibility: hidden;
+}

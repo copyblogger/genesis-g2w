@@ -84,6 +84,21 @@ class Genesis_G2W_Admin extends Genesis_Admin_Form {
 							</select>
 						</td>
 					</tr>
+					<tr>
+						<th>Button Text</th>
+						<td>
+							<input type="regular-text" id="button_text" placeholder="Register Now">
+							<p class="description">Leave blank for default</p>
+						</td>
+					</tr>
+					<tr>
+						<th>Redirect to thank you page?</th>
+						<td><input type="checkbox" id="gtw_redirect_check" value="1"></td>
+					</tr>
+					<tr id="gtw_redirect_row">
+						<th>Thank you page</th>
+						<td><?php wp_dropdown_pages( array( 'id' => 'thank_page' ) ); ?></td>
+					</tr>
 				</table>
 				<button type="submit" class="button-primary">Insert Registration Form</button>
 			</form>
@@ -157,6 +172,7 @@ class Genesis_G2W_Admin extends Genesis_Admin_Form {
 	function form() {
 		self::setup_oauth();
 		$url = self::$client->getAuthenticationUrl(self::AUTHORIZATION_ENDPOINT, self::REDIRECT_URI, array( 'state' => self::$state ) );
+		$credentials = get_option( 'genesis_gtw_credentials' );
 		?>
 
 		<table class="form-table">
@@ -165,7 +181,12 @@ class Genesis_G2W_Admin extends Genesis_Admin_Form {
 			<tr valign="top">
 				<th>Authenticate</th>
 				<td>
-				<a class="button-primary button-ccontatct"  href="<?php echo $url; ?>">Link GoToWebinar Account</a>
+					<?php if( empty( $credentials ) ) : ?>
+						<a class="button-primary"  href="<?php echo $url; ?>">Link GoToWebinar Account</a>
+					<?php else: ?>
+						<p class="description">You have successfully linked your GoToWebinar account.</p>
+						<a class="button"  href="<?php echo $url; ?>">Update GoToWebinar Account</a>
+					<?php endif; ?>
 				</td>
 			</tr>
 
@@ -173,7 +194,6 @@ class Genesis_G2W_Admin extends Genesis_Admin_Form {
 		</table>
 
 		<?php
-		echo '<pre>'.print_r( get_option( 'genesis_gtw_credentials' ), true ).'</pre>';
 	}
 
 }
